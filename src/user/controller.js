@@ -63,7 +63,7 @@ const createUserForRegistration = async (req, res) => {
         const email = req.body.email
         const password = bcrypt.hashSync(req.body.password, 8)
 
-        const data = { email, name, password }
+        const data = { email, password }
         const user = await prisma.users.create({ data })
         return res.json({ data: user })
 
