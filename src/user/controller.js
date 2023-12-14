@@ -29,7 +29,19 @@ const getUser = async (req, res) => {
     }
 }
 
-const getUserForLogin = async (mail) =>  {}
+const getUserForLogin = async (mail) =>  {
+    return prisma.users.findUnique({
+        select: {
+            id: true,
+            email: true,
+            password: true,
+            role: true
+        },
+        where: {
+            email: mail
+        }
+    })
+}
 
 const createUser = async (req, res) => {
     try {
