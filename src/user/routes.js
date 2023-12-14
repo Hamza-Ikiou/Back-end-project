@@ -12,4 +12,7 @@ userRouter.route('/user/:email')
     .put(editUser)
     .delete(deleteUser)
 
+userRouter.route('/user/register')
+    .post(createUserForRegistration)
+
 module.exports = userRouter
