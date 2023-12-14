@@ -44,7 +44,19 @@ const editUser = async (req, res) => {
     }
 }
 
-const deleteUser = async (req, res) => {}
+const deleteUser = async (req, res) => {
+    try {
+        const email = req.params.email
+        const user = await prisma.users.delete({
+            where: {
+                email: email
+            }
+        })
+        return res.json({ data: user })
+    } catch(error) {
+        return res.status(500).json({error: error.message})
+    }
+}
 
 module.exports = {
     getAllUsers,
