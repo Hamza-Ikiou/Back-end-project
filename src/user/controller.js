@@ -1,9 +1,33 @@
 const prisma = require("../prisma")
 const bcrypt = require('bcryptjs')
 
-const getAllUsers = async (req, res) => {}
+const getAllUsers = async (req, res) => {
+    try {
+        const users = await prisma.users.findMany()
+        return res.json({ data: users })
+    } catch(e) {
+        return res.status(500).json({error: e.message})
+    }
+}
 
-const getUser = async (req, res) => {}
+const getUser = async (req, res) => {
+    try {
+        const {email} = req.params
+        const user = await prisma.users.findUnique({
+            select: {
+                id: true,
+                email: true,
+                role: true
+            },
+            where: {
+                email: email
+            }
+        })
+        return res.json({ data: user })
+    } catch(error) {
+        return res.status(500).json({error: error.message})
+    }
+}
 
 const getUserForLogin = async (mail) =>  {}
 
