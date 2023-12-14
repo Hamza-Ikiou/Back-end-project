@@ -1,5 +1,6 @@
 const { getUserForLogin } = require('../user/controller')
 const { jwtTokens } = require("./jwt-helper")
+const { verify } = require("jsonwebtoken")
 const bcrypt = require('bcryptjs')
 
 const login = async (req, res) => {
@@ -27,7 +28,21 @@ const login = async (req, res) => {
     }
 }
 
-const refresh_token = async (req, res) => {}
+const refresh_token = async (req, res) => {
+    try {
+        const refreshToken = req.headers.cookie.split('=')[1]
+        if (!refreshToken) return res.status(401).json({error: "Null refresh token"})
+
+        verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (error, user) => {
+            if (error) return res.status(403).json({error: error.message})
+            const userJwt = jwtTokens(user)
+            res.cookie('refresh_token', userJwt.refreshToken, {httpOnly: true})
+            res.json(userJwt)
+        })
+    } catch (error) {
+        res.status(401).json({error: error.message})
+    }
+}
 
 const delete_token = async (req, res) => {}
 
