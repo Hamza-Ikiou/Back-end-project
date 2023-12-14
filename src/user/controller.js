@@ -22,7 +22,27 @@ const createUser = async (req, res) => {
     }
 }
 
-const editUser = async (req, res) => {}
+const editUser = async (req, res) => {
+    try {
+        const email = req.params.email
+
+        const newEmail = req.body.email
+        const password = bcrypt.hashSync(req.body.password, 8)
+
+        const user = await prisma.users.update({
+            where: {
+                email: email
+            },
+            data: {
+                email: newEmail,
+                password: password
+            }
+        })
+        return res.json({ data: user })
+    } catch(error) {
+        return res.status(500).json({error: error.message})
+    }
+}
 
 const deleteUser = async (req, res) => {}
 
