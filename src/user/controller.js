@@ -1,5 +1,5 @@
 const prisma = require("../prisma")
-const bcrypt = require('bcryptjs')
+const {isValidEmail, hashPassword} = require('./utils')
 
 const getAllUsers = async (req, res) => {
     try {
@@ -45,11 +45,10 @@ const getUserForLogin = async (mail) =>  {
 
 const createUser = async (req, res) => {
     try {
-        const email = req.body.email
-        const password = bcrypt.hashSync(req.body.password, 8)
-        const role = req.body.role
-
-        const data = { email, password, role }
+        const {email, password, role} = req.body
+        if(!isValidEmail(email)) throw new Error("Invalid Email.")
+        const hashedPassword = await hashPassword(password)
+        const data = { email, password: hashedPassword, role }
         const user = await prisma.users.create({ data })
         return res.json({ data: user })
 
@@ -60,10 +59,10 @@ const createUser = async (req, res) => {
 
 const createUserForRegistration = async (req, res) => {
     try {
-        const email = req.body.email
-        const password = bcrypt.hashSync(req.body.password, 8)
-
-        const data = { email, password }
+        const {email, password} = req.body
+        if(!isValidEmail(email)) throw new Error("Invalid Email.")
+        const hashedPassword = await hashPassword(password)
+        const data = { email, password: hashedPassword }
         const user = await prisma.users.create({ data })
         return res.json({ data: user })
 
@@ -74,18 +73,18 @@ const createUserForRegistration = async (req, res) => {
 
 const editUser = async (req, res) => {
     try {
-        const email = req.params.email
-
-        const newEmail = req.body.email
-        const password = bcrypt.hashSync(req.body.password, 8)
+        const {email} = req.params
+        const {email: newEmail, password} = req.body
+        let hashedPassword;
+        if(password) hashedPassword = await hashPassword(password)
 
         const user = await prisma.users.update({
             where: {
                 email: email
             },
             data: {
-                email: newEmail,
-                password: password
+                ...(email ? {email: newEmail}: {}),
+                ...(password ? {password: hashedPassword}: {})
             }
         })
         return res.json({ data: user })
@@ -96,10 +95,10 @@ const editUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
     try {
-        const email = req.params.email
+        const {email} = req.params
         const user = await prisma.users.delete({
             where: {
-                email: email
+                email
             }
         })
         return res.json({ data: user })
