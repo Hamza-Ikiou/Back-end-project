@@ -1,31 +1,38 @@
 const { getUserForLogin } = require('../user/controller')
 const { jwtTokens } = require("./jwt-helper")
 const { verify } = require("jsonwebtoken")
-const bcrypt = require('bcryptjs')
+const prisma = require("../prisma")
+const { isValidEmail, comparePassword, hashPassword } = require('../user/utils')
 
 const login = async (req, res) => {
     try {
-        const email = req.body.email
-        const password = req.body.password
+        const {email, password} = req.body
 
-        // Check if an email and a password has been sent in the request
         if (!email || !password) return res.status(401).json({error: 'Email or password was not provided.'})
+        if(!isValidEmail(email)) throw new Error('Invalid Email.')
 
-        // Check if the user exist and if the password in the database is the same that the one he sent
         const user = await getUserForLogin(email)
-        const validPassword = bcrypt.compareSync(password, user.password)
-        if (!validPassword) return res.status(401).json({error: 'Password is incorrect.'})
+        if(!(await comparePassword(password, user.password))) throw new Error('Password is incorrect.')
 
-        // Create a JWT for the user
         const paramsToken = { user_id: user.id, user_email: user.email, user_role: user.role }
         const userJwt = jwtTokens(paramsToken)
         res.cookie('refresh_token', userJwt.refreshToken, {httpOnly: true})
 
-        // Put in the response the JWT created
         res.json(userJwt)
     } catch (error) {
         res.status(401).json({error: error.message})
     }
+}
+
+const googleAuth = async (req, accessToken, refreshToken, profile, done) => {
+    let user = await getUserForLogin(profile.emails[0].value)
+    if(!user){
+        const data = { email: profile.emails[0].value, password: await hashPassword(`NO_PASSWORD_${profile.id}`) }
+        user = await prisma.users.create({ data })
+    }
+    const paramsToken = { user_id: user.id, user_email: user.email, user_role: user.role }
+    user.token = jwtTokens(paramsToken)
+    return done(null, user);
 }
 
 const refresh_token = async (req, res) => {
@@ -53,4 +60,4 @@ const delete_token = async (req, res) => {
     }
 }
 
-module.exports = { login, refresh_token, delete_token }
+module.exports = { login, googleAuth, refresh_token, delete_token }
