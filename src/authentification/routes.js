@@ -15,16 +15,13 @@ passport.use(new GoogleStrategy({
     googleAuth
 ));
 
-authRouter.get('/auth/google',
-    passport.authenticate('google', { scope: ['profile', 'email'], session: false })
-);
-
-authRouter.get('/auth/google/callback',
-    passport.authenticate('google', { session: false, failureRedirect: '/' }),
-    (req, res) => {
-        res.redirect(`${process.env.FRONT_BASE_URL}/user-profile?token=${req.user.token.accessToken}`)
-    }
-);
+authRouter.route('/auth/google')
+    .get(passport.authenticate('google', { scope: ['profile', 'email'], session: false }))
+authRouter.route('/auth/google/callback')
+    .get(
+        passport.authenticate('google', { session: false, failureRedirect: '/' }),
+        (req, res) => { res.redirect(`${process.env.FRONT_BASE_URL}/user-profile?token=${req.user.token.accessToken}`) }
+    )
 
 authRouter.route('/auth/login')
     .post(login)
