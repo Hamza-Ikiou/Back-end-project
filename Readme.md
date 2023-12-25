@@ -16,7 +16,7 @@ After cloning the project, follow these steps:
 - Go to the project directory:
 
 ```bash
-cd nodejs-application
+cd Back-end-project
 ```
 
 - Install the dependencies:
