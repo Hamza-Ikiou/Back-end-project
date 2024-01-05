@@ -7,7 +7,7 @@ This application was developed with Express and Prisma in the context of a schoo
 Make sure you have installed the following:
 
 - Nodejs
-- PostgreSQL on you system
+- PostgreSQL on your system
 
 ## Installation
 
